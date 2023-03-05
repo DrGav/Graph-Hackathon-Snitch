@@ -1,0 +1,74 @@
+﻿@page "/myteam"
+@using Microsoft.Graph
+
+@inject Snitch.GraphServices.GraphClientFactory clientFactory
+
+<AuthorizeView>
+    <Authorized>
+        <ul>
+            @foreach (var u in allUsers)
+            {
+
+                <li>@u.DisplayName</li>
+
+            }
+        </ul>
+    </Authorized>
+    <NotAuthorized>
+        <RedirectToLogin />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+
+    [CascadingParameter]
+    private Task<AuthenticationState>? authenticationStateTask { get; set; }
+
+    private IList<User> allUsers = new List<User>();
+
+    private string status = string.Empty;
+    private bool isError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (authenticationStateTask == null)
+        {
+            throw new AuthenticationException(new Error
+                {
+                    Message = "Unable to access authentication state"
+                });
+        }
+
+        var graphClient = clientFactory.GetAuthenticatedClient();
+
+        try
+        {
+            var users = await graphClient.Me.DirectReports.Request()
+                              .Select("displayName,mail,givenName,surname,id")
+                              .GetAsync();
+
+
+            while (users.Count > 0)
+            {
+                foreach (var u in users)
+                {
+                    allUsers.Add((User)u);
+                }
+                if (users.NextPageRequest != null)
+                {
+                    users = await users.NextPageRequest
+                        .GetAsync();
+                }
+                else
+                {
+                    break;
+                }
+            }
+        }
+        catch (ServiceException exception)
+        {
+            isError = true;
+            status = exception.Message;
+        }
+    }
+}
