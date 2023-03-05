@@ -5,14 +5,37 @@
 
 <AuthorizeView>
     <Authorized>
-        <ul>
-            @foreach (var u in allUsers)
-            {
+        <div class="card col-sm-8">
+            <div class="card-header">
+                Direct Reports
+            </div>
 
-                <li>@u.DisplayName</li>
-
-            }
-        </ul>
+            <div class="card-body">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th scope="col">Id</th>
+                            <th scope="col">Name</th>
+                            <th scope="col">Email</th>
+                            <th scope="col">Monitoring</th>
+                            <th scope="col">Status change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var u in allUsers)
+                        {
+                            <tr>
+                                <td>@u.Id</td>
+                                <td>@u.DisplayName</td>
+                                <td>@u.Mail</td>
+                                <td class="text-center"><input class="form-check-input" type="checkbox" /></td>
+                                <td class="text-center"><button @onclick="@(e => ChangeStatus(u.Id))">Change Status</button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </Authorized>
     <NotAuthorized>
         <RedirectToLogin />
@@ -70,5 +93,15 @@
             isError = true;
             status = exception.Message;
         }
+    }
+
+    private async Task ChangeStatus(string userId)
+    {
+        var graphClient = clientFactory.GetAuthenticatedClient();
+
+        await graphClient.Users[userId].Presence.SetPresence("Available", "Available", "d1e40049-b2cd-4d88-99d7-6a68ced05b29", new Duration("PT1H"))
+                                                .Request()
+                                                .PostAsync();
+
     }
 }
