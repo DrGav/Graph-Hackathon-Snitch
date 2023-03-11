@@ -1,11 +1,12 @@
 ﻿@page "/myteam"
 @using Microsoft.Graph
+@using Snitch.DTOs;
 
 @inject Snitch.GraphServices.GraphClientFactory clientFactory
 
 <AuthorizeView>
     <Authorized>
-        <div class="card col-sm-8">
+        <div class="card col-sm-10">
             <div class="card-header">
                 Direct Reports
             </div>
@@ -14,22 +15,26 @@
                 <table class="table table-hover">
                     <thead>
                         <tr>
-                            <th scope="col">Id</th>
                             <th scope="col">Name</th>
                             <th scope="col">Email</th>
                             <th scope="col">Monitoring</th>
-                            <th scope="col">Status change</th>
+                            <th>Available</th>
+                            <th>Away</th>
+                            <th>Busy</th>
+                            <th>Do Not Disturb</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var u in allUsers)
+                        @foreach (var u in MonitoringUsers)
                         {
                             <tr>
-                                <td>@u.Id</td>
                                 <td>@u.DisplayName</td>
-                                <td>@u.Mail</td>
-                                <td class="text-center"><input class="form-check-input" type="checkbox" /></td>
-                                <td class="text-center"><button @onclick="@(e => ChangeStatus(u.Id))">Change Status</button></td>
+                                <td>@u.Email</td>
+                                <td class="text-center"><input class="form-check-input" type="checkbox" @bind-value=u.Monitoring /></td>
+                                <td class="text-center">@u.AvailableMinutes</td>
+                                <td class="text-center">@u.AwayMinutes</td>
+                                <td class="text-center">@u.BusyMinutes</td>
+                                <td class="text-center">@u.DoNotDisturbMinutes</td>
                             </tr>
                         }
                     </tbody>
@@ -48,6 +53,7 @@
     private Task<AuthenticationState>? authenticationStateTask { get; set; }
 
     private IList<User> allUsers = new List<User>();
+    private IList<UserMonitorDTO> MonitoringUsers = new List<UserMonitorDTO>();
 
     private string status = string.Empty;
     private bool isError;
@@ -87,6 +93,26 @@
                     break;
                 }
             }
+
+            foreach(var u in allUsers)
+            {
+                var newUser = new UserMonitorDTO
+                {
+                    UserId = u.Id,
+                    DisplayName = u.DisplayName,
+                    Email = u.Mail,
+                    Monitoring = false,
+                    AvailableMinutes = 0,
+                    AwayMinutes = 0,
+                    BusyMinutes = 0,
+                    DoNotDisturbMinutes = 0
+                };
+
+                MonitoringUsers.Add(newUser);
+            }
+
+            StartMonitor();
+
         }
         catch (ServiceException exception)
         {
@@ -95,13 +121,43 @@
         }
     }
 
-    private async Task ChangeStatus(string userId)
+    private void SetMonitor(string userId)
+    {
+        MonitoringUsers.Where(u => u.UserId == userId).FirstOrDefault().Monitoring = !MonitoringUsers.Where(u => u.UserId == userId).FirstOrDefault().Monitoring;
+    }
+
+    private async Task StartMonitor()
     {
         var graphClient = clientFactory.GetAuthenticatedClient();
 
-        await graphClient.Users[userId].Presence.SetPresence("Available", "Available", "d1e40049-b2cd-4d88-99d7-6a68ced05b29", new Duration("PT1H"))
-                                                .Request()
-                                                .PostAsync();
+        while (true)
+        {
+            foreach(var user in MonitoringUsers)
+            {
+                if (user.Monitoring)
+                {
+                    var presence = await graphClient.Users[user.UserId].Presence.Request().GetAsync();
 
+                    switch (presence.Availability)
+                    {
+                        case "Available":
+                            user.AvailableMinutes = user.AvailableMinutes++;
+                            break;
+                        case "Busy":
+                            user.BusyMinutes = user.BusyMinutes++;
+                            break;
+                        case "Away":
+                            user.AwayMinutes = user.AwayMinutes + 1;
+                            break;
+                        case "DoNotDisturb":
+                            user.DoNotDisturbMinutes = user.DoNotDisturbMinutes++;
+                            break;
+                    }
+                }
+            }
+            
+            await Task.Delay(5000);
+            StateHasChanged();
+        }
     }
 }
