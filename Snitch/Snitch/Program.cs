@@ -26,8 +26,7 @@ builder.Services.AddMsalAuthentication<RemoteAuthenticationState, RemoteUserAcco
     }
 
     builder.Configuration.Bind("AzureAd", options.ProviderOptions.Authentication);
-})
-.AddAccountClaimsPrincipalFactory<RemoteAuthenticationState, RemoteUserAccount, GraphUserAccountFactory>();
+});
 
 builder.Services.AddScoped<GraphClientFactory>();
 
