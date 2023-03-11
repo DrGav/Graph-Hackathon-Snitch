@@ -99,16 +99,16 @@ namespace Snitch.Pages
                         switch (presence.Availability)
                         {
                             case "Available":
-                                user.AvailableMinutes = user.AvailableMinutes++;
+                                user.AvailableMinutes = user.AvailableMinutes + 1;
                                 break;
                             case "Busy":
-                                user.BusyMinutes = user.BusyMinutes++;
+                                user.BusyMinutes = user.BusyMinutes + 1;
                                 break;
                             case "Away":
                                 user.AwayMinutes = user.AwayMinutes + 1;
                                 break;
                             case "DoNotDisturb":
-                                user.DoNotDisturbMinutes = user.DoNotDisturbMinutes++;
+                                user.DoNotDisturbMinutes = user.DoNotDisturbMinutes + 1;
                                 break;
                         }
                     }

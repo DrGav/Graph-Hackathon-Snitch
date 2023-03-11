@@ -1,9 +1,9 @@
-﻿$tenantId = '85836210-f351-478d-ab83-bfc6eb0d658d'
-$ClientID = 'd1e40049-b2cd-4d88-99d7-6a68ced05b29'
-$ClientSecret = '2Jq8Q~OBRD~ysMGlJqF4R_q4U0goWZ3LuO6omcbh'
+﻿$tenantId = 'TENNENT_ID_GOES_HERE'
+$ClientID = 'CLIENT_ID_GOES_HERE'
+$ClientSecret = 'CLIENT_SECRET_GOES_HERE'
 
 
-$users = "GavinAdmin@lxf6.onmicrosoft.com"
+$users = "EMAIL_TO_UPDATE_STATUS_ON_GOES_HERE"
 
 #Number of hours the presence should be valid.
 $Hours = "8"
