@@ -41,6 +41,17 @@
                 </table>
             </div>
         </div>
+
+        <div class="card col-sm-10">
+            <div class="card-header">
+                Activity Monitoring
+            </div>
+            <div class="card-body">
+                <Chart ActivityData="@ActivityData"></Chart>
+            </div>
+        </div>
+
+
     </Authorized>
     <NotAuthorized>
         <RedirectToLogin />

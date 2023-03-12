@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.Graph;
 using Snitch.DTOs;
+using Snitch.Components;
 
 namespace Snitch.Pages
 {
@@ -12,6 +13,8 @@ namespace Snitch.Pages
 
         private IList<User> allUsers = new List<User>();
         private IList<UserMonitorDTO> MonitoringUsers = new List<UserMonitorDTO>();
+        private List<ActivityDataDTO> ActivityData = new List<ActivityDataDTO>();
+
 
         private string status = string.Empty;
         private bool isError;
@@ -100,23 +103,42 @@ namespace Snitch.Pages
                         {
                             case "Available":
                                 user.AvailableMinutes = user.AvailableMinutes + 1;
+                                AddActivityDataPoint(user.UserId, 4);
                                 break;
                             case "Busy":
                                 user.BusyMinutes = user.BusyMinutes + 1;
+                                AddActivityDataPoint(user.UserId, 3);
                                 break;
                             case "Away":
                                 user.AwayMinutes = user.AwayMinutes + 1;
+                                AddActivityDataPoint(user.UserId, 1);
                                 break;
                             case "DoNotDisturb":
                                 user.DoNotDisturbMinutes = user.DoNotDisturbMinutes + 1;
+                                AddActivityDataPoint(user.UserId, 2);
                                 break;
                         }
+
+                        StateHasChanged();
+                        
                     }
                 }
-
                 await Task.Delay(5000);
-                StateHasChanged();
+                
             }
+        }
+
+        public void AddActivityDataPoint(string userId, int ActivityId)
+        {
+            var activity = new ActivityDataDTO
+            {
+                UserId = userId,
+                DisplayName = allUsers.Where(u => u.Id == userId).FirstOrDefault().DisplayName,
+                ActivityTime = DateTime.Now,
+                ActivityStatusId = ActivityId
+            };
+
+            ActivityData.Add(activity);
         }
     }
 }

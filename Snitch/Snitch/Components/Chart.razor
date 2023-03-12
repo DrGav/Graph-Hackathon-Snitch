@@ -1,0 +1,27 @@
+﻿@using Radzen.Blazor
+
+<div class="container">
+    <div class="row">
+        <div class="col-sm-12 my-5">
+            @if (ActivityData.Count() > 0)
+            {
+                <RadzenChart>
+
+                    @foreach (var user in ActivityData.Select(u => u.UserId).Distinct())
+                    {
+                        <RadzenLineSeries Smooth="false" Data="@ActivityData.Where(u => u.UserId == user)" CategoryProperty="ActivityTime" Title="@ActivityData.Where(u => u.UserId == user).FirstOrDefault().DisplayName" LineType="LineType.Dashed" ValueProperty="ActivityStatusId">
+                            <RadzenMarkers MarkerType="MarkerType.Square" />
+                            <RadzenSeriesDataLabels Visible="false" />
+                        </RadzenLineSeries>
+                    }
+
+                    <RadzenCategoryAxis Padding="20" Formatter="@FormatAsTime" />
+                    <RadzenValueAxis Formatter="@FormatAsActivity" Step="1">
+                        <RadzenGridLines Visible="true" />
+                        <RadzenAxisTitle Text="Activity" />
+                    </RadzenValueAxis>
+                </RadzenChart>
+            }
+        </div>
+    </div>
+</div>
